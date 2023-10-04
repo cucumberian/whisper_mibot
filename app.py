@@ -17,7 +17,10 @@ import config
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print("Loading model...")
-model = whisper.load_model('medium', device=device, download_root="./models/")
+# - large - 10GB VRAM
+# - medium - 5GB VRAM
+# - base
+model = whisper.load_model('large', device=device, download_root="./models/")
 print(
     f"{'Multilingual' if model.is_multilingual else 'English '}model loaded."
 )
