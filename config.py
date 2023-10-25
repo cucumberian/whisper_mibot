@@ -11,7 +11,7 @@ class Config:
     # small | 244M | 2GB VRAM
     # base | 74M | 1GB VRAM
     # tiny | 39M | 1GB VRAM
-    model = "tiny"
+    model = "small"
 
     dirs = {
         "models": "./models",

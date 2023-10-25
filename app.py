@@ -65,9 +65,7 @@ async def get_text(message: types.Message):
 async def get_audio(message: types.Message):
     voice_object = message.voice or message.audio
     pathlib.Path(audio_dir).mkdir(parents=True, exist_ok=True)
-    filename = os.path.join(
-        audio_dir, f"{voice_object.file_unique_id}"
-    )
+    filename = os.path.join(audio_dir, f"{voice_object.file_unique_id}")
 
     mess = await message.reply("Downloading file...")
     try:
@@ -92,16 +90,19 @@ async def get_audio(message: types.Message):
     await send_long_message(message, text)
 
 
-async def send_long_message(message: types.Message, text: str, max_symbols: int = 4000) -> None:
+async def send_long_message(
+    message: types.Message, text: str, max_symbols: int = 4000
+) -> None:
     """
     Send some messages if initial message longer then max_symbols
     """
     if len(text) < max_symbols:
-        await message.reply(text)
+        await message.reply(text or "-")
     else:
         for i in range(0, len(text), max_symbols):
             t = text[i : i + 4000]
             await message.answer(text=t)
+
 
 def video_decoding(video_filename: str, ogg_audio_filename: str) -> None:
     """
@@ -120,6 +121,7 @@ def video_decoding(video_filename: str, ogg_audio_filename: str) -> None:
         ).overwrite_output().run()
     except Exception as E:
         raise E
+        os.remove(ogg_audio_filename)
     finally:
         os.remove(video_filename)
 
@@ -175,12 +177,14 @@ async def get_video_like(message: types.Message):
 
 
 def get_translate(filename: str) -> str:
-    result = model.transcribe(filename)
     try:
-        os.remove(filename)
+        result = model.transcribe(filename)
+        return result["text"]
     except Exception as E:
         raise E
-    return result["text"]
+    finally:
+        os.remove(filename)
+    
 
 
 async def main():
