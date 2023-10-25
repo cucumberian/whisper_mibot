@@ -11,7 +11,7 @@ sudo apt install ffmpeg
 ```
 И установка зависимостей пайтона:
 ```shell
-pip3 isntall -r requirements.txt
+pip3 install -r requirements.txt
 ```
 ### Переменные окружения
 Бот использует переменную окружения `WHISPER_MIBOT_TOKEN`,
@@ -26,7 +26,7 @@ python3 app.py
 ```
 
 ### Запуск как сервиса в Linux
-Создать файл `/etc/systemd/system/whisper-mibot.service` со слeдующим содержимым:
+Создать файл `/etc/systemd/system/whisper-mibot.service` со следующим содержимым:
 ```conf
 [Unit]
 Description=Telegram bot whisper-mibot
@@ -47,9 +47,10 @@ EnvironmentFile=/home/<username>/whisper_mibot/.env
 [Install]
 WantedBy=multi-user.target
 ```
-, в котором вместо `<username>` и `<usergroup>` подставить имя пользовтеля и группу пользователя, от имени которогу будет запускаться сервис.
+, в котором вместо `<username>` и `<usergroup>` подставить имя пользователя и группу пользователя, от имени которого будет запускаться сервис.
 Важно указать в параметре `ExecStart` правильный путь до интерпретатора python и путь до файла программы `app.py`.
-Параметр `EnvironmentFile` указывает путь до файла `.env`, в котором записана переменная окружения `WHISPER_MIBOT_TOKEN`:
+Параметр `EnvironmentFile` указывает путь до файла `.env`, в котором записана переменная окружения `WHISPER_MIBOT_TOKEN`.
+Пример файла `.env`:
 ```env
 WHISPER_MIBOT_TOKEN=<bot_token>
 ```
@@ -60,10 +61,10 @@ sudo systemctl enable whisper-mibot.service
 sudo systemctl start whisper-mibot.service
 ```
 ## Работа с ботом
-Достаточно перетянуть или перслать боту аудио сообщение или вудио файл.
-После его обработки бот отправит переведенный текст в ответ на это сообщение.
+Перетянуть или переслать боту аудио сообщение или аудио файл.
+После его обработки бот в ответ отправит переведенный текст.
 
-## Поддерживает:
+## Типы сообщений
 Бот не принимает файлы больше 28 МБ.
 - аудио файлы
 - голосовые сообщения
