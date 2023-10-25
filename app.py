@@ -12,20 +12,23 @@ import torch
 import gc
 import whisper
 
-import config
+from config import Config
 
+voice_dir = Config.dirs.get("voice") or "./voice"
+audio_dir = Config.dirs.get("audio") or "./audio"
+models_dir = Config.dirs.get("models") or "./models"
+for dir in [voice_dir, audio_dir, models_dir]:
+    pathlib.Path(dir).mkdir(parents=True, exist_ok=True)
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print("Loading model...")
-# - large - 10GB VRAM
-# - medium - 5GB VRAM
-# - base
-model = whisper.load_model('large', device=device, download_root="./models/")
+
+model = whisper.load_model(Config.model, device=device, download_root=models_dir)
 print(
     f"{'Multilingual' if model.is_multilingual else 'English '}model loaded."
 )
 
-bot = Bot(token=config.Config.TG_BOT_TOKEN)
+bot = Bot(token=Config.WHISPER_MIBOT_TOKEN)
 
 dp = Dispatcher()
 
@@ -63,8 +66,7 @@ async def get_text(message: types.Message):
 
 @dp.message(F.voice)
 async def get_voice(message: types.Message):
-    # print(f"{message = }")
-    filename = f"./voice/{message.voice.file_unique_id}.ogg"
+    filename = os.path.join(voice_dir, f"{message.voice.file_unique_id}.ogg")
     print(f"{filename = }")
     await bot.download(
         message.voice,
@@ -206,11 +208,8 @@ async def get_voice(message: types.Message):
 
 @dp.message(F.audio)
 async def get_audio(message: types.Message):
-    # print(f"{message = }")
-
-
     file_extension = pathlib.Path(message.audio.file_name).suffix
-    filename = f"./audio/{message.audio.file_unique_id}{file_extension}"
+    filename = os.path.join(audio_dir, f"{message.audio.file_unique_id}{file_extension}")
 
     await bot.download(
         message.audio,
