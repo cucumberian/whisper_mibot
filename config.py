@@ -19,3 +19,6 @@ class Config:
         "voice": "./tmp",
         "video": "./tmp",
     }
+
+    MongoDB_string = os.environ.get("MONGO_STRING")
+    MongoDB_db_name = "whisper_mibot"

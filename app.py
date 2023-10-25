@@ -13,6 +13,10 @@ from aiogram import F
 import torch
 import whisper
 
+from db.utils import video_decoding
+from db.utils import register_message
+from db.utils import send_long_message
+from db.utils import get_translate
 from config import Config
 
 voice_dir = Config.dirs.get("voice") or "./voice"
@@ -42,6 +46,7 @@ async def command_start(message: types.Message):
 
 
 @dp.message(Command("id"))
+@register_message
 async def command_id(message: types.Message):
     await message.reply(
         f"chat id: {message.chat.id}\n" f"user_id: {message.from_user.id}"
@@ -49,11 +54,13 @@ async def command_id(message: types.Message):
 
 
 @dp.message(Command("help"))
+@register_message
 async def help_command(message: types.Message):
     await message.reply("Бот для получения текста из аудио")
 
 
 @dp.message(F.text)
+@register_message
 async def get_text(message: types.Message):
     await message.reply(
         f"Не понимаю: {message.text}\n" f"Наберите команду `\\help` для справки"
@@ -62,6 +69,7 @@ async def get_text(message: types.Message):
 
 @dp.message(F.voice)
 @dp.message(F.audio)
+@register_message
 async def get_audio(message: types.Message):
     voice_object = message.voice or message.audio
     pathlib.Path(audio_dir).mkdir(parents=True, exist_ok=True)
@@ -81,7 +89,7 @@ async def get_audio(message: types.Message):
 
     mess = await message.reply("Processing audio to text...")
     try:
-        text = get_translate(filename)
+        text = get_translate(model, filename)
     except Exception as E:
         await message.reply("Error: Cannot extract text.")
         raise E
@@ -90,45 +98,10 @@ async def get_audio(message: types.Message):
     await send_long_message(message, text)
 
 
-async def send_long_message(
-    message: types.Message, text: str, max_symbols: int = 4000
-) -> None:
-    """
-    Send some messages if initial message longer then max_symbols
-    """
-    if len(text) < max_symbols:
-        await message.reply(text or "-")
-    else:
-        for i in range(0, len(text), max_symbols):
-            t = text[i : i + 4000]
-            await message.answer(text=t)
-
-
-def video_decoding(video_filename: str, ogg_audio_filename: str) -> None:
-    """
-    :param video_filename: input video filename
-    :type video_filename: str
-    :param ogg_audio_filename: output ogg-encoded audio filename
-    :type ogg_audio_filename: str
-    :return:
-    """
-    try:
-        ffmpeg.input(video_filename).output(
-            ogg_audio_filename,
-            format="ogg",
-            acodec="libvorbis",
-            ab="64k",
-        ).overwrite_output().run()
-    except Exception as E:
-        raise E
-        os.remove(ogg_audio_filename)
-    finally:
-        os.remove(video_filename)
-
-
 @dp.message(F.video)
 @dp.message(F.video_note)
 @dp.message(F.document)
+@register_message
 async def get_video_like(message: types.Message):
     pathlib.Path(video_dir).mkdir(parents=True, exist_ok=True)
     object = message.video or message.video_note or message.document
@@ -167,24 +140,13 @@ async def get_video_like(message: types.Message):
 
     mess = await message.reply("Processing audio to text...")
     try:
-        text = get_translate(output_filename)
+        text = get_translate(model, output_filename)
     except Exception as E:
         await message.reply("Error: Cannot extract text.")
         raise E
     finally:
         await mess.delete()
     await send_long_message(message, text)
-
-
-def get_translate(filename: str) -> str:
-    try:
-        result = model.transcribe(filename)
-        return result["text"]
-    except Exception as E:
-        raise E
-    finally:
-        os.remove(filename)
-    
 
 
 async def main():
