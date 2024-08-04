@@ -1,11 +1,14 @@
-import os
-from functools import wraps
+from typing import Any
 from datetime import datetime
+from functools import wraps
 import hashlib
-from aiogram import types
-import ffmpeg
+
+from aiogram.types import Message
+from aiogram.types import User
+
 from .db import MongoDB
 from config import Config
+
 
 def register_message(func):
     """
@@ -13,7 +16,9 @@ def register_message(func):
     """
 
     @wraps(func)
-    async def inner(message: types.Message, *args, **kwargs):
+    async def inner(
+        message: Message, *args: list[Any], **kwargs: dict[Any, Any]
+    ):
         try:
             return await func(message, *args, **kwargs)
         finally:
@@ -23,7 +28,9 @@ def register_message(func):
             now_time = datetime.now()
             try:
                 with MongoDB() as db:
-                    db.add_event_to_db(event_hash=event_hash, event_date=now_time)
+                    db.add_event_to_db(
+                        event_hash=event_hash, event_date=now_time
+                    )
             except Exception as E:
                 print(f"Error: {E}")
 
@@ -41,7 +48,7 @@ def get_hash(string: str) -> str:
     return hashlib.shake_128(string.encode()).hexdigest(5)
 
 
-def get_userhash(user: types.user) -> str:
+def get_userhash(user: User) -> str:
     """
     Return sha256 hash from user credentials
     :param user: user object
@@ -55,49 +62,3 @@ def get_userhash(user: types.user) -> str:
     username = user.username
     user_str = f"{user_id}.{user_full_name}.{username}"
     return get_hash(user_str)
-
-
-def video_decoding(video_filename: str, ogg_audio_filename: str) -> None:
-    """
-    :param video_filename: input video filename
-    :type video_filename: str
-    :param ogg_audio_filename: output ogg-encoded audio filename
-    :type ogg_audio_filename: str
-    :return:
-    """
-    try:
-        ffmpeg.input(video_filename).output(
-            ogg_audio_filename,
-            format="ogg",
-            acodec="libvorbis",
-            ab="64k",
-        ).overwrite_output().run()
-    except Exception as E:
-        raise E
-        os.remove(ogg_audio_filename)
-    finally:
-        os.remove(video_filename)
-
-
-async def send_long_message(
-    message: types.Message, text: str, max_symbols: int = 4000
-) -> None:
-    """
-    Send some messages if initial message longer then max_symbols
-    """
-    if len(text) < max_symbols:
-        await message.reply(text or "-")
-    else:
-        for i in range(0, len(text), max_symbols):
-            t = text[i : i + 4000]
-            await message.answer(text=t)
-
-
-def get_translate(model, filename: str) -> str:
-    try:
-        result = model.transcribe(filename)
-        return result["text"]
-    except Exception as E:
-        raise E
-    finally:
-        os.remove(filename)
