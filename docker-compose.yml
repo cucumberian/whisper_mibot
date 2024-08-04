@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  whisper-mibot:
+    build: ./src
+    command: sh -c "python app.py"
+    container_name: whisper-mibot
+    restart: always
+    env_file: .env
+    environment:
+      - WHISPER_MIBOT_TOKEN:${WHISPER_MIBOT_TOKEN}
+      - WHISPER_BACKEND_URL:${WHISPER_BACKEND_URL}

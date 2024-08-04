@@ -1,6 +1,6 @@
 import pymongo
 
-from config import Config
+from src.config import Config
 from datetime import datetime
 
 
