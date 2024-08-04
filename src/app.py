@@ -65,7 +65,13 @@ async def get_text(message: Message):
 @dp.message(F.document)
 @register_message
 async def get_processing_entity(message: Message, whisper: WhisperAPI):
-    entity = message.video or message.video_note or message.document
+    entity = (
+        message.voice
+        or message.audio
+        or message.video
+        or message.video_note
+        or message.document
+    )
     if entity is None:
         await message.reply("Не удалось найти данные")
         return

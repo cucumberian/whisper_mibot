@@ -6,7 +6,7 @@ import hashlib
 from aiogram.types import Message
 from aiogram.types import User
 
-from .db import MongoDB
+from db.db import MongoDB
 from config import Config
 
 

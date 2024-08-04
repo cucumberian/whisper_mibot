@@ -1,7 +1,7 @@
+from datetime import datetime
 import pymongo
 
-from src.config import Config
-from datetime import datetime
+from config import Config
 
 
 class MongoDB:
