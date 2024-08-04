@@ -84,10 +84,11 @@ async def get_processing_entity(message: Message, whisper: WhisperAPI):
         )
     except Exception:
         pass
+
     if transcribed_text is None:
         await mess.edit_text(text="Не удалось распознать аудио")
         return
-    mess.delete()
+    await mess.delete()
     await send_long_message(text=transcribed_text, message=message)
 
 
