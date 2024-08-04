@@ -1,11 +1,10 @@
 from datetime import datetime
-import pymongo
-
+from pymongo import MongoClient
 from config import Config
 
 
 class MongoDB:
-    Mongo_string = Config.MongoDB_string or None
+    Mongo_string = Config.MONGO_STRING or None
     Mongo_dbName = Config.MongoDB_db_name or None
 
     def __init__(
@@ -13,7 +12,7 @@ class MongoDB:
         db_string: str = Mongo_string,
         db_name: str = Mongo_dbName,
     ) -> None:
-        self.client = pymongo.MongoClient(db_string)
+        self.client = MongoClient(host=db_string)
         self.db = self.client[db_name]
 
     def add_event_to_db(self, event_hash: str, event_date: datetime):

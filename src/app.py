@@ -17,14 +17,11 @@ from config import Config
 from service.whisper_service import WhisperAPI
 
 
-print("Loading model...")
-
-
 bot = Bot(token=Config.WHISPER_MIBOT_TOKEN)
 dp = Dispatcher()
 dp["whisper"] = WhisperAPI(transcribe_url=Config.WHISPER_BACKEND_URL)
 
-print("bot started")
+print(f"bot started with whisper backend at {Config.WHISPER_BACKEND_URL}")
 
 
 @dp.message(CommandStart())
@@ -35,7 +32,6 @@ async def command_start(message: Message):
 @dp.message(Command("id"))
 @register_message
 async def command_id(message: Message):
-    print(f"{message.chat.id = }")
     await message.reply(
         f"Chat id: {message.chat.id}\n"
         + f"user_id: {message.from_user.id if message.from_user else None}"
@@ -96,7 +92,7 @@ async def get_processing_entity(message: Message, whisper: WhisperAPI):
 
 
 async def main():
-    await dp.start_polling(bot)
+    await dp.start_polling(bot, polling_timeout=30)
 
 
 if __name__ == "__main__":

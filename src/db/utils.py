@@ -1,5 +1,5 @@
 from typing import Any
-from datetime import datetime
+import datetime
 from functools import wraps
 import hashlib
 
@@ -22,10 +22,10 @@ def register_message(func):
         try:
             return await func(message, *args, **kwargs)
         finally:
-            if Config.MongoDB_string is None:
+            if Config.MONGO_STRING is None:
                 return
-            event_hash = get_userhash(message.from_user)
-            now_time = datetime.now()
+            event_hash = get_user_hash(message.from_user)
+            now_time = datetime.datetime.now(datetime.UTC)
             try:
                 with MongoDB() as db:
                     db.add_event_to_db(
@@ -48,7 +48,7 @@ def get_hash(string: str) -> str:
     return hashlib.shake_128(string.encode()).hexdigest(5)
 
 
-def get_userhash(user: User) -> str:
+def get_user_hash(user: User) -> str:
     """
     Return sha256 hash from user credentials
     :param user: user object
