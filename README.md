@@ -49,8 +49,8 @@
 1. Создаете файл `.env` рядом с `docker-compose.yml` c переменными окружения.
 
   ```shell
-  WHISPER_MIBOT_TOKEN="<bot_token>"
-  WHISPER_BACKEND_URL="<http://127.0.0.1:8000/transcribe>"
+  WHISPER_MIBOT_TOKEN="bot_token"
+  WHISPER_BACKEND_URL="http://127.0.0.1:8000/transcribe"
   ```
 
 2. Запускаете
@@ -90,8 +90,8 @@ WantedBy=multi-user.target
 Пример файла `.env`:
 
 ```env
-WHISPER_MIBOT_TOKEN="<bot_token>"
-WHISPER_BACKEND_URL="<http://127.0.0.1:8000/transcribe>"
+WHISPER_MIBOT_TOKEN="bot_token"
+WHISPER_BACKEND_URL="http://127.0.0.1:8000/transcribe"
 ```
 
 Далее включить и запустить сервис командами:

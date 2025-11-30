@@ -48,8 +48,7 @@ async def help_command(message: Message):
 @register_message
 async def get_text(message: Message):
     await message.reply(
-        f"Не понимаю: {message.text}\n"
-        f"Наберите команду `\\help` для справки",
+        f"Не понимаю: {message.text}\nНаберите команду `\\help` для справки",
         parse_mode=ParseMode.MARKDOWN_V2,
     )
 
@@ -77,19 +76,16 @@ async def get_processing_entity(message: Message, whisper: WhisperAPI):
         text="Работаю...",
         reply_to_message_id=message.message_id,
     )
-    transcribed_text = None
     try:
         transcribed_text = await transcribe_file(
             file_id=entity.file_id, bot=bot, whisper=whisper
         )
-    except Exception:
-        pass
-
-    if transcribed_text is None:
-        await mess.edit_text(text="Не удалось распознать аудио")
-        return
-    await mess.delete()
-    await send_long_message(text=transcribed_text, message=message)
+        await send_long_message(text=transcribed_text, message=message)
+    except Exception as e:
+        detail = str(e)
+        await send_long_message(text=f"Произошла ошибка: {detail}", message=message)
+    finally:
+        await mess.delete()
 
 
 async def main():
