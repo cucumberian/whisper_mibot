@@ -1,5 +1,7 @@
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class Config:
     WHISPER_MIBOT_TOKEN = os.environ["WHISPER_MIBOT_TOKEN"]

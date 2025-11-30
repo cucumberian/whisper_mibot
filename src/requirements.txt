@@ -2,3 +2,5 @@ aiogram
 pymongo
 pydantic
 requests
+python-dotenv
+httpx
