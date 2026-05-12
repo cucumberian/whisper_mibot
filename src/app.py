@@ -7,21 +7,35 @@ from aiogram.filters import Command
 from aiogram.filters import CommandStart
 from aiogram import F
 from aiogram.enums import ParseMode
+from aiogram.client.telegram import TelegramAPIServer
+from aiogram.client.default import DefaultBotProperties
 
 
 from db.utils import register_message
 from service.aiogram_service import transcribe_file
 from service.aiogram_service import send_long_message
+from service.httpx_session import HttpxSession
 from config import Config
 
-from service.whisper_service import WhisperAPI
+from service.stt_service import STTAPI, STTException
 
 
-bot = Bot(token=Config.WHISPER_MIBOT_TOKEN)
+# Кастомный Telegram API сервер
+telegram_api = TelegramAPIServer.from_base(Config.TELEGRAM_API_URL)
+
+# Используем кастомную сессию на httpx с кастомным API
+session = HttpxSession(api=telegram_api)
+
+bot = Bot(
+    token=Config.WHISPER_MIBOT_TOKEN, 
+    session=session,
+    default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+)
 dp = Dispatcher()
-dp["whisper"] = WhisperAPI(transcribe_url=Config.WHISPER_BACKEND_URL)
+dp["stt"] = STTAPI(api_url=Config.STT_API_URL)
 
-print(f"bot started with whisper backend at {Config.WHISPER_BACKEND_URL}")
+print(f"bot started with telegram api at {Config.TELEGRAM_API_URL}")
+print(f"bot started with stt api at {Config.STT_API_URL}")
 
 
 @dp.message(CommandStart())
@@ -41,7 +55,8 @@ async def command_id(message: Message):
 @dp.message(Command("help"))
 @register_message
 async def help_command(message: Message):
-    await message.reply("Бот для получения текста из аудио")
+    await message.reply("Бот для получения текста из аудио.\n\n"
+                       "Отправьте аудио, голосовое сообщение, видео или документ — получите текст.")
 
 
 @dp.message(F.text)
@@ -59,7 +74,7 @@ async def get_text(message: Message):
 @dp.message(F.video_note)
 @dp.message(F.document)
 @register_message
-async def get_processing_entity(message: Message, whisper: WhisperAPI):
+async def get_processing_entity(message: Message, stt: STTAPI):
     entity = (
         message.voice
         or message.audio
@@ -78,7 +93,7 @@ async def get_processing_entity(message: Message, whisper: WhisperAPI):
     )
     try:
         transcribed_text = await transcribe_file(
-            file_id=entity.file_id, bot=bot, whisper=whisper
+            file_id=entity.file_id, bot=bot, stt=stt
         )
         await send_long_message(text=transcribed_text, message=message)
     except Exception as e:
