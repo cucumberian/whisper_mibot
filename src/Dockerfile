@@ -1,4 +1,4 @@
-FROM python:3.12-alpine3.20
+FROM python:3.12-slim
 
 ENV USER_HOME=/home/app/
 ENV APP_HOME=${USER_HOME}/app/
@@ -13,7 +13,8 @@ RUN pip install --no-cache-dir -r requirements.freeze
 
 COPY . .
 
-RUN addgroup --system app
-RUN adduser -S -G app app
-RUN chown -R app:app ${USER_HOME}
+RUN groupadd --system app && \
+    useradd --system --gid app --home-dir ${USER_HOME} app && \
+    chown -R app:app ${USER_HOME}
+
 USER app
